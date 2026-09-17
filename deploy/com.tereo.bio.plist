@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.tereo.bio</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/local/bin/uvicorn</string>
+        <string>bio.main:app</string>
+        <string>--host</string>
+        <string>127.0.0.1</string>
+        <string>--port</string>
+        <string>8504</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/opt/tereo/bio</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>VERSION</key><string>1</string>
+        <key>BIO_STRIP_PREFIX</key><string>true</string>
+        <key>BIO_DATA_DIR</key><string>/var/lib/tereo/bio</string>
+        <key>PORTAL_LAUNCH_PATH</key><string>/portal/launch/bio</string>
+    </dict>
+    <key>RunAtLoad</key><true/>
+    <key>KeepAlive</key><true/>
+</dict>
+</plist>
