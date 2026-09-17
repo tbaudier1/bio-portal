@@ -1,6 +1,4 @@
 from contextlib import asynccontextmanager
-from urllib.parse import quote
-
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -10,26 +8,23 @@ from bio import VERSION as APP_VERSION
 from bio.config import (
     APP_NAME,
     COMPANY,
-    LAUNCH_PATH,
     MOUNT_PATH,
     PORTAL_FRAME_ANCESTORS,
     portal_sso_jwks,
 )
 from bio.data_guard import ensure_data_dir
-from bio.sso import SSOConfigurationError, get_user_from_request, jwks_keys_empty
+from bio.portal_bounce import (
+    portal_launch_bounce_url,
+    portal_sso_return_attempt,
+    unauthenticated_stop_response,
+)
+from bio.sso import get_user_from_request, jwks_keys_empty
 
 templates = Jinja2Templates(directory="templates")
 
 
 def _mount_prefix() -> str:
     return MOUNT_PATH if MOUNT_PATH.startswith("/") else f"/{MOUNT_PATH}"
-
-
-def launch_url(request: Request) -> str:
-    return_url = request.url.path
-    if request.url.query:
-        return_url = f"{return_url}?{request.url.query}"
-    return f"{LAUNCH_PATH}?return_url={quote(return_url, safe='')}"
 
 
 class PortalSecurityHeadersMiddleware(BaseHTTPMiddleware):
@@ -74,7 +69,9 @@ async def home(request: Request):
         return HTMLResponse("<h1>SSO misconfigured</h1><p>Portal JWKS keys=[] is not allowed.</p>", status_code=503)
     user = get_user_from_request(request)
     if user is None:
-        return RedirectResponse(url=launch_url(request), status_code=302)
+        if portal_sso_return_attempt(request):
+            return unauthenticated_stop_response(request)
+        return RedirectResponse(url=portal_launch_bounce_url(request), status_code=303)
     metrics = [
         {"label": "Active leases (example)", "value": "128", "note": "Placeholder — not real data"},
         {"label": "Occupancy % (example)", "value": "94.2%", "note": "Placeholder — not real data"},

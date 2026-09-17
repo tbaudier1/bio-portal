@@ -19,8 +19,19 @@ def _token(private_pem: str, sub: str = "user-1") -> str:
 def test_home_redirects_to_portal_launch_without_cookie(bio_env):
     client = TestClient(app)
     r = client.get("/", follow_redirects=False)
-    assert r.status_code == 302
-    assert r.headers["location"].startswith("/portal/launch/bio")
+    assert r.status_code in (302, 303)
+    loc = r.headers["location"]
+    assert loc.startswith("/portal/launch/bio")
+    assert "sso=1" in loc
+
+
+def test_home_sso_return_without_cookie_stops_with_401(bio_env):
+    client = TestClient(app)
+    for query in ("sso=1", "portal_sso=1"):
+        r = client.get(f"/?{query}", follow_redirects=False)
+        assert r.status_code == 401
+        loc = r.headers.get("location", "")
+        assert not loc.startswith("/portal/launch/bio")
 
 
 def test_home_renders_with_valid_portal_token(bio_env, ed25519_keypair):
