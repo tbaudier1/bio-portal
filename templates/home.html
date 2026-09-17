@@ -1,0 +1,1 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/><title>{{ app_name }}</title></head><body><header>{{ company }} BIO — v{{ version }}</header><p>Signed in as {{ user.name or user.sub }}</p><p><strong>Example metrics only — not real data.</strong></p>{% for m in metrics %}<div><b>{{ m.label }}</b>: {{ m.value }} ({{ m.note }})</div>{% endfor %}</body></html>
